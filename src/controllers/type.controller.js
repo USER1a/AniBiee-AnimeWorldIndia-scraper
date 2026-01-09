@@ -14,6 +14,7 @@ class TypeController extends BaseController {
     await this.execute(req, res, next, async () => {
       try {
         const type = req.params.type;
+        const pathType = req.params.pathType || 'category'; // 'category' or 'letter'
         const { page = 1 } = req.query;
 
         if (!type || type.trim() === '') {
@@ -27,7 +28,7 @@ class TypeController extends BaseController {
         }
 
         const typeExtractor = new TypeExtractor();
-        const typeData = await typeExtractor.extractFromFile(null, type, pageNum);
+        const typeData = await typeExtractor.extractFromFile(null, type, pageNum, pathType);
 
         res.status(200).json({
           success: true,

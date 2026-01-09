@@ -126,10 +126,13 @@ class TypeExtractor extends BaseExtractor {
     };
   }
 
-  async extractFromFile(filePath, type = 'movies', page = 1) {
-    // Build URL - try category first, then direct path
-    // Some types use /category/{type}/page/{page}/ (like anime, cartoon, genre/action, etc.)
-    // Others use /{type}/page/{page}/ (like movies, series)
+  async extractFromFile(filePath, type = 'movies', page = 1, pathType = 'category') {
+    // Build URL - supports category, letter, and direct paths
+    // pathType can be 'category', 'letter', or 'direct'
+    // Examples:
+    // - category: /category/language/english/ or /category/genre/sci-fi/
+    // - letter: /letter/D/ or /letter/D/page/2/
+    // - direct: /movies/ or /series/
     const { httpClient } = require('../utils/http');
     const { getRandomUserAgent } = require('../config/user-agents');
     const { logger } = require('../utils/logger');
@@ -140,6 +143,21 @@ class TypeExtractor extends BaseExtractor {
     let url;
     let html;
     let lastError;
+
+    // Handle letter paths (e.g., /letter/D/)
+    if (pathType === 'letter') {
+      url = `${this.base.baseUrl}/letter/${type}${page > 1 ? `/page/${page}/` : '/'}`;
+      try {
+        html = await httpClient.get(url, {
+          headers: {
+            'User-Agent': getRandomUserAgent(),
+          },
+        });
+        return this.extract(html, url, page);
+      } catch (error) {
+        throw error;
+      }
+    }
 
     // Try category path first (unless it's a known direct path)
     if (!directPaths.includes(type)) {

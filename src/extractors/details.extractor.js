@@ -105,6 +105,16 @@ class DetailsExtractor extends BaseExtractor {
     const image = this.extractAttribute($('article.post.single img').first(), 'src');
     const imageUrl = this.normalizeImageUrl(image);
 
+    // Extract background image (from header or footer background)
+    let backgroundImage = '';
+    const bgHeaderImg = this.extractAttribute($('.bghd img.TPostBg').first(), 'src');
+    const bgFooterImg = this.extractAttribute($('.bgft img.TPostBg').first(), 'src');
+    const bgImage = bgHeaderImg || bgFooterImg;
+    if (bgImage) {
+      // Normalize protocol-relative URLs (//image.tmdb.org -> https://image.tmdb.org)
+      backgroundImage = bgImage.startsWith('//') ? `https:${bgImage}` : bgImage;
+    }
+
     // Extract seasons and episodes count
     const seasonsEpisodesText = this.extractText($('article.post.single div[style*="text-align: center"]').first());
     let seasonsText = '';
@@ -185,6 +195,7 @@ class DetailsExtractor extends BaseExtractor {
       postId: postId,
       title: title || '',
       image: imageUrl,
+      background: backgroundImage || '',
       description: description || '',
       genres: genres,
       languages: languages,

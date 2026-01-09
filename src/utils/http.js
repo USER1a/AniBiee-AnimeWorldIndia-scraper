@@ -91,6 +91,38 @@ class HttpClient {
     return Buffer.from(response.data);
   }
 
+  async post(url, data, options = {}) {
+    const config = {
+      url,
+      method: 'POST',
+      data,
+      timeout: options?.timeout,
+      headers: {
+        ...this.client.defaults.headers,
+        ...options?.headers,
+      },
+    };
+
+    let lastError;
+    const retries = options?.retries ?? 0;
+    const retryDelay = options?.retryDelay ?? 1000;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await this.client.request(config);
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        if (attempt < retries) {
+          logger.warn(`Request failed, retrying... (${attempt + 1}/${retries})`);
+          await this.delay(retryDelay * (attempt + 1));
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
   delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

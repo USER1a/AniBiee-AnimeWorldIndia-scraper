@@ -1,0 +1,47 @@
+/**
+ * Search Controller
+ * Copyright (c) 2025 Basirul Akhlak Borno - https://basirulakhlak.tech/
+ * ⚠️ Educational use only. Respect copyright laws.
+ */
+
+const { BaseController } = require('./base.controller');
+const { logger } = require('../utils/logger');
+const { BadRequestError } = require('../utils/errors');
+const { SearchExtractor } = require('../extractors/search.extractor');
+
+class SearchController extends BaseController {
+  async search(req, res, next) {
+    await this.execute(req, res, next, async () => {
+      try {
+        const { suggestion, q } = req.query;
+
+        if (!suggestion && !q) {
+          throw new BadRequestError('Either "suggestion" or "q" parameter is required');
+        }
+
+        const searchExtractor = new SearchExtractor();
+        let results;
+
+        if (q) {
+          // Full page search
+          results = await searchExtractor.searchFullPage(q.trim());
+        } else {
+          // AJAX suggestion search
+          results = await searchExtractor.search(suggestion.trim());
+        }
+
+        res.status(200).json({
+          success: true,
+          data: {
+            items: results,
+          },
+        });
+      } catch (error) {
+        logger.error('Error performing search', error);
+        throw new BadRequestError('Failed to perform search');
+      }
+    });
+  }
+}
+
+module.exports = { SearchController };

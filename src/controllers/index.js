@@ -6,4 +6,5 @@ module.exports = {
   ...require('./details.controller'),
   ...require('./episodes.controller'),
   ...require('./embed.controller'),
+  ...require('./search.controller'),
 };

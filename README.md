@@ -1,8 +1,12 @@
-# AnimeWorldIndia Scraper API
+# AniBiee - AnimeWorldIndia Scraper API
 
 ![Favicon](public/favicon.png)
 
 A RESTful API scraper for AnimeWorldIndia, built with Node.js and Express. This API provides endpoints to extract anime, cartoon, movie, and series information from watchanimeworld.in.
+
+## Screenshot
+
+![Homepage Screenshot](public/home.jpg)
 
 ## ⚠️ Legal Disclaimer
 
@@ -15,6 +19,8 @@ A RESTful API scraper for AnimeWorldIndia, built with Node.js and Express. This 
 - 📚 Fetch episodes by season
 - 🎥 Extract embed player links
 - 🔍 Browse by category (movies, series, anime, cartoon, genres, languages)
+- 🔤 Browse alphabetically by letter (A-Z)
+- 🔎 Search functionality (AJAX suggestions and full page search)
 - 🔒 Origin-based access control
 - 🛡️ Security middleware (Helmet, CORS, Rate Limiting)
 - 📄 Beautiful HTML error pages (403, 404)
@@ -28,8 +34,8 @@ A RESTful API scraper for AnimeWorldIndia, built with Node.js and Express. This 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/basirulakhlakborno/animeworldindia-scraper.git
-cd animeworldindia-scraper
+git clone https://github.com/basirulakhlakborno/AniBiee-AnimeWorldIndia-scraper.git
+cd AniBiee-AnimeWorldIndia-scraper
 ```
 
 2. Install dependencies:
@@ -125,6 +131,90 @@ GET /api/category/language/hindi?page=1
 }
 ```
 
+### Letter/Alphabetical Browsing
+
+Browse content alphabetically by letter with pagination.
+
+```http
+GET /api/letter/{letter}?page={page}
+```
+
+**Parameters:**
+- `letter` - Letter to browse (e.g., `A`, `B`, `D`, `Z`)
+- `page` - Page number (optional, default: `1`)
+
+**Example:**
+```http
+GET /api/letter/D?page=1
+GET /api/letter/A?page=2
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "currentPage": 1,
+  "totalPages": 3,
+  "data": {
+    "items": [...]
+  }
+}
+```
+
+### Search
+
+Search for content using AJAX suggestions or full page search.
+
+```http
+GET /api/search?suggestion={term}
+GET /api/search?q={term}
+```
+
+**Query Parameters:**
+- `suggestion` - Search term for AJAX quick suggestions (returns minimal data without images)
+- `q` - Search term for full page search (returns complete results with images)
+
+**Note:** Either `suggestion` or `q` parameter is required.
+
+**Example:**
+```http
+GET /api/search?suggestion=naruto
+GET /api/search?q=naruto
+```
+
+**Response (AJAX suggestion):**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "naruto",
+        "type": "series",
+        "title": "Naruto"
+      }
+    ]
+  }
+}
+```
+
+**Response (Full page search):**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "naruto",
+        "type": "series",
+        "title": "Naruto",
+        "image": "https://image.tmdb.org/t/p/w500/..."
+      }
+    ]
+  }
+}
+```
+
 ### Series/Movie Details
 
 Get detailed information about a specific series or movie.
@@ -144,6 +234,7 @@ GET /api/info/{id}
   "postId": "1101",
   "title": "Spy x Family",
   "image": "...",
+  "background": "https://image.tmdb.org/t/p/w1280/...",
   "description": "...",
   "genres": [...],
   "languages": [...],
@@ -278,7 +369,7 @@ The API implements origin-based access control:
 ## Project Structure
 
 ```
-animeworldindia-scraper/
+AniBiee-AnimeWorldIndia-scraper/
 ├── public/              # Static files (HTML pages, images)
 │   ├── index.html      # Home page
 │   ├── 404.html        # 404 error page

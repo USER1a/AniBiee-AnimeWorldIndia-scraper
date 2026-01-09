@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { ScraperController, HomeController, TypeController, DetailsController, EpisodesController, EmbedController } = require('../controllers');
+const { ScraperController, HomeController, TypeController, DetailsController, EpisodesController, EmbedController, SearchController } = require('../controllers');
 const { validateQuery } = require('../middleware');
 const { z } = require('zod');
 
@@ -10,6 +10,7 @@ const typeController = new TypeController();
 const detailsController = new DetailsController();
 const episodesController = new EpisodesController();
 const embedController = new EmbedController();
+const searchController = new SearchController();
 
 // Home route
 router.get('/home', (req, res, next) => homeController.home(req, res, next));
@@ -23,6 +24,20 @@ router.get('/episodes/:id/:season', (req, res, next) => episodesController.getEp
 // Embed route
 router.get('/embed/:id', (req, res, next) => embedController.getEmbed(req, res, next));
 
+// Search route
+const searchSchema = z.object({
+  suggestion: z.string().min(1).optional(),
+  q: z.string().min(1).optional(),
+}).refine((data) => data.suggestion || data.q, {
+  message: 'Either "suggestion" or "q" parameter is required',
+});
+
+router.get(
+  '/search',
+  validateQuery(searchSchema),
+  (req, res, next) => searchController.search(req, res, next)
+);
+
 // Category route
 const pageSchema = z.object({
   page: z.string().regex(/^\d+$/).optional().default('1'),
@@ -35,6 +50,20 @@ router.get(
     // Extract type from wildcard path (everything after /category/)
     const type = req.params[0] || '';
     req.params.type = type;
+    req.params.pathType = 'category';
+    typeController.getType(req, res, next);
+  }
+);
+
+// Letter route (for alphabetical browsing)
+router.get(
+  '/letter/*',
+  validateQuery(pageSchema),
+  (req, res, next) => {
+    // Extract letter from wildcard path (everything after /letter/)
+    const type = req.params[0] || '';
+    req.params.type = type;
+    req.params.pathType = 'letter';
     typeController.getType(req, res, next);
   }
 );
