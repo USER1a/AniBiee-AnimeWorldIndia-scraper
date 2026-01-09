@@ -20,11 +20,37 @@ class EmbedController extends BaseController {
         }
 
         const embedExtractor = new EmbedExtractor();
-        const embedData = await embedExtractor.extractFromUrl(id);
+        // Map episode ID with external API and get embed data
+        const embedData = await embedExtractor.getEmbedWithMapping(id);
 
         res.status(200).json(embedData);
       } catch (error) {
         logger.error('Error extracting embed data', error);
+        throw new BadRequestError(`Failed to extract embed data: ${error.message}`);
+      }
+    });
+  }
+
+  async getEmbedByDataIdAndEpisode(req, res, next) {
+    await this.execute(req, res, next, async () => {
+      try {
+        const { dataId, season, episode } = req.params;
+
+        if (!dataId || !season || !episode) {
+          throw new BadRequestError('dataId, season, and episode parameters are required');
+        }
+
+        const embedExtractor = new EmbedExtractor();
+        // Get embed data using data_id, season, and episode
+        const embedData = await embedExtractor.getEmbedByDataIdAndEpisode(
+          dataId,
+          parseInt(season, 10),
+          parseInt(episode, 10)
+        );
+
+        res.status(200).json(embedData);
+      } catch (error) {
+        logger.error('Error extracting embed data by data_id and episode', error);
         throw new BadRequestError(`Failed to extract embed data: ${error.message}`);
       }
     });
